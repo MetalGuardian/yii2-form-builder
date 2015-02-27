@@ -15,13 +15,13 @@ The preferred way to install this extension is through [composer](http://getcomp
 Either run
 
 ```
-php composer.phar require --prefer-dist metalguardian/yii2-form-builder "*"
+php composer.phar require --prefer-dist metalguardian/yii2-form-builder "~1.0"
 ```
 
 or add
 
 ```
-"metalguardian/yii2-form-builder": "*"
+"metalguardian/yii2-form-builder": "~1.0"
 ```
 
 to the require section of your `composer.json` file.
