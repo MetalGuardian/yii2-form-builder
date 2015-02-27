@@ -2,6 +2,11 @@ Yii2 Form Builder
 =================
 Small and easy form builder. You can store form configuration in form model.
 
+[![Latest Stable Version](https://poser.pugx.org/metalguardian/yii2-form-builder/v/stable.svg)](https://packagist.org/packages/metalguardian/yii2-form-builder) 
+[![Total Downloads](https://poser.pugx.org/metalguardian/yii2-form-builder/downloads.svg)](https://packagist.org/packages/metalguardian/yii2-form-builder) 
+[![Latest Unstable Version](https://poser.pugx.org/metalguardian/yii2-form-builder/v/unstable.svg)](https://packagist.org/packages/metalguardian/yii2-form-builder) 
+[![License](https://poser.pugx.org/metalguardian/yii2-form-builder/license.svg)](https://packagist.org/packages/metalguardian/yii2-form-builder)
+
 Installation
 ------------
 

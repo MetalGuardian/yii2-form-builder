@@ -159,6 +159,7 @@ class ActiveFormBuilder extends ActiveForm
             case static::INPUT_RAW:
                 $field = static::genInput($field, $label, $labelOptions, $hint, $hintOptions);
                 $value = ArrayHelper::getValue($settings, 'value', '');
+
                 if ($value instanceof \Closure) {
                     $value = call_user_func($value);
                 } elseif (!is_string($value)) {
