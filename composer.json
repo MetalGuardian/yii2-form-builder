@@ -1,0 +1,21 @@
+{
+    "name": "metalguardian/yii2-form-builder",
+    "description": "Small and easy form builder",
+    "type": "yii2-extension",
+    "keywords": ["yii2","extension","form","builder"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Ivan Pushkin",
+            "email": "imetalguardi+yii2@gmail.com"
+        }
+    ],
+    "require": {
+        "yiisoft/yii2": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "metalguardian\\formBuilder\\": "src"
+        }
+    }
+}
