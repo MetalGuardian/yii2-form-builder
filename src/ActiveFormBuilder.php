@@ -53,22 +53,17 @@ class ActiveFormBuilder extends ActiveForm
         self::INPUT_RAW
     ];
 
-    /** @var Model|null */
-    protected $model;
-
     /**
-     * @param Model|null $model
+     * @param Model $model
      * @param array $config
      *
      * @return null|string
      */
-    public function renderForm(Model $model = null, array $config)
+    public function renderForm(Model $model, array $config)
     {
-        $this->model = $model;
-
         $form = null;
-        foreach ($config as $fieldName => $fieldConfig) {
-            $form .= $this->renderField($fieldName, $fieldConfig);
+        foreach ($config as $attribute => $options) {
+            $form .= $this->renderField($model, $attribute, $options);
         }
 
         return $form;
@@ -78,111 +73,23 @@ class ActiveFormBuilder extends ActiveForm
     /**
      * @param $attribute
      * @param array $settings
-     * @param Model|null $model
+     * @param Model $model
      *
      * @return ActiveField
      * @throws InvalidConfigException
      */
-    public function renderField($attribute, array $settings = [], $model = null)
+    public function renderField($model, $attribute, array $settings = [])
     {
-        if (!$model) {
-            $model = $this->model;
-        }
-        $type = ArrayHelper::getValue($settings, 'type', static::INPUT_TEXT);
-
-        if (!in_array($type, static::$validInputTypes, true)) {
-            throw new InvalidConfigException(
-                "Invalid input type '{$type}' configured for the attribute '{$attribute}'.'"
-            );
-        }
+        $type = $this->getType($settings);
 
         $fieldOptions = ArrayHelper::getValue($settings, 'fieldOptions', []);
         $label = ArrayHelper::getValue($settings, 'label', null);
         $labelOptions = ArrayHelper::getValue($settings, 'labelOptions', []);
         $hint = ArrayHelper::getValue($settings, 'hint', null);
         $hintOptions = ArrayHelper::getValue($settings, 'hintOptions', []);
-        $options = ArrayHelper::getValue($settings, 'options', []);
 
         $field = $this->field($model, $attribute, $fieldOptions);
 
-        switch ($type) {
-            case static::INPUT_HIDDEN:
-            case static::INPUT_TEXT:
-            case static::INPUT_TEXTAREA:
-            case static::INPUT_PASSWORD:
-            case static::INPUT_FILE:
-                $field = static::genInput($field->$type($options), $label, $labelOptions, $hint, $hintOptions);
-                break;
-            case static::INPUT_DROPDOWN_LIST:
-            case static::INPUT_LIST_BOX:
-            case static::INPUT_CHECKBOX_LIST:
-            case static::INPUT_RADIO_LIST:
-                $items = ArrayHelper::getValue($settings, 'items', []);
-                $field = static::genInput($field->$type($items, $options), $label, $labelOptions, $hint, $hintOptions);
-                break;
-            case static::INPUT_CHECKBOX:
-            case static::INPUT_RADIO:
-                $enclosedByLabel = ArrayHelper::getValue($settings, 'enclosedByLabel', true);
-                $field = static::genInput(
-                    $field->$type($options, $enclosedByLabel),
-                    $label,
-                    $labelOptions,
-                    $hint,
-                    $hintOptions
-                );
-                break;
-            case static::INPUT_HTML5:
-                $html5type = ArrayHelper::getValue($settings, 'html5type', 'text');
-                $field = static::genInput(
-                    $field->$type($html5type, $options),
-                    $label,
-                    $labelOptions,
-                    $hint,
-                    $hintOptions
-                );
-                break;
-            case static::INPUT_WIDGET:
-                $widgetClass = ArrayHelper::getValue($settings, 'widgetClass', []);
-                if (empty($widgetClass) && !$widgetClass instanceof \yii\widgets\InputWidget) {
-                    throw new InvalidConfigException(
-                        "A valid 'widgetClass' for '{$attribute}' must be setup and extend from '\\yii\\widgets\\InputWidget'."
-                    );
-                }
-                $field = static::genInput(
-                    $field->$type($widgetClass, $options),
-                    $label,
-                    $labelOptions,
-                    $hint,
-                    $hintOptions
-                );
-                break;
-            case static::INPUT_RAW:
-                $field = static::genInput($field, $label, $labelOptions, $hint, $hintOptions);
-                $value = ArrayHelper::getValue($settings, 'value', '');
-
-                if ($value instanceof \Closure) {
-                    $value = call_user_func($value);
-                } elseif (!is_string($value)) {
-                    $value = '';
-                }
-                $field->parts['{input}'] = $value;
-                break;
-        }
-
-        return $field;
-    }
-
-    /**
-     * @param ActiveField $field
-     * @param string|null $label
-     * @param array $labelOptions
-     * @param string|null $hint
-     * @param array $hintOptions
-     *
-     * @return ActiveField|static
-     */
-    public static function genInput(ActiveField $field, $label = null, $labelOptions = [], $hint = null, $hintOptions = [])
-    {
         if ($label !== null) {
             $field->label($label, $labelOptions);
         }
@@ -190,6 +97,122 @@ class ActiveFormBuilder extends ActiveForm
             $field->hint($hint, $hintOptions);
         }
 
+        $this->prepareField($field, $type, $settings);
+
         return $field;
+    }
+
+    /**
+     * @param ActiveField $field
+     * @param $type
+     * @param array $settings
+     * @throws InvalidConfigException
+     */
+    protected function prepareField($field, $type, array $settings)
+    {
+        $options = ArrayHelper::getValue($settings, 'options', []);
+        switch ($type) {
+            case static::INPUT_HIDDEN:
+                $field->hiddenInput($options);
+                break;
+            case static::INPUT_TEXT:
+                $field->textInput($options);
+                break;
+            case static::INPUT_TEXTAREA:
+                $field->textarea($options);
+                break;
+            case static::INPUT_PASSWORD:
+                $field->passwordInput($options);
+                break;
+            case static::INPUT_FILE:
+                $field->fileInput($options);
+                break;
+            case static::INPUT_DROPDOWN_LIST:
+                $items = ArrayHelper::getValue($settings, 'items', []);
+                $field->dropDownList($items, $options);
+                break;
+            case static::INPUT_LIST_BOX:
+                $items = ArrayHelper::getValue($settings, 'items', []);
+                $field->listBox($items, $options);
+                break;
+            case static::INPUT_CHECKBOX_LIST:
+                $items = ArrayHelper::getValue($settings, 'items', []);
+                $field->checkboxList($items, $options);
+                break;
+            case static::INPUT_RADIO_LIST:
+                $items = ArrayHelper::getValue($settings, 'items', []);
+                $field->radioList($items, $options);
+                break;
+            case static::INPUT_CHECKBOX:
+                $enclosedByLabel = ArrayHelper::getValue($settings, 'enclosedByLabel', true);
+                $field->checkbox($options, $enclosedByLabel);
+                break;
+            case static::INPUT_RADIO:
+                $enclosedByLabel = ArrayHelper::getValue($settings, 'enclosedByLabel', true);
+                $field->radio($options, $enclosedByLabel);
+                break;
+            case static::INPUT_HTML5:
+                $html5type = ArrayHelper::getValue($settings, 'html5type', 'text');
+                $field->input($html5type, $options);
+                break;
+            case static::INPUT_WIDGET:
+                $widgetClass = $this->getWidgetClass($settings);
+                $field->widget($widgetClass, $options);
+                break;
+            case static::INPUT_RAW:
+                $value = $this->getValue($settings);
+                $field->parts['{input}'] = $value;
+                break;
+        }
+    }
+
+    /**
+     * @param array $settings
+     * @return mixed
+     * @throws InvalidConfigException
+     */
+    protected function getWidgetClass(array $settings)
+    {
+        $widgetClass = ArrayHelper::getValue($settings, 'widgetClass', []);
+        if (empty($widgetClass) && !$widgetClass instanceof \yii\widgets\InputWidget) {
+            throw new InvalidConfigException(
+                "A valid 'widgetClass' must be setup and extend from '\\yii\\widgets\\InputWidget'."
+            );
+        }
+        return $widgetClass;
+    }
+
+    /**
+     * @param array $settings
+     * @return mixed
+     * @throws InvalidConfigException
+     */
+    protected function getType(array $settings)
+    {
+        $type = ArrayHelper::getValue($settings, 'type', static::INPUT_TEXT);
+
+        if (!in_array($type, static::$validInputTypes, true)) {
+            throw new InvalidConfigException(
+                "Invalid input type '{$type}' configured for the attribute."
+            );
+        }
+        return $type;
+    }
+
+    /**
+     * @param array $settings
+     * @return mixed|string
+     */
+    protected function getValue(array $settings)
+    {
+        $value = ArrayHelper::getValue($settings, 'value', '');
+        if ($value instanceof \Closure) {
+            $value = call_user_func($value);
+            return $value;
+        } elseif (!is_string($value)) {
+            $value = '';
+            return $value;
+        }
+        return $value;
     }
 }

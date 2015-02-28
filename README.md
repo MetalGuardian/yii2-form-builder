@@ -139,11 +139,11 @@ Now you can use different models in one form
     .....
     <?php $form = \metalguardian\formBuilder\ActiveFormBuilder::begin(); ?>
     
-    <?= $form->renderField('label', \app\helpers\Helper::getLabelConfig(), $model1); ?>
-    <?= $form->renderField('content', \app\helpers\Helper::getContentConfig(), $model1); ?>
+    <?= $form->renderField($model1, 'label', \app\helpers\Helper::getLabelConfig()); ?>
+    <?= $form->renderField($model1, 'content', \app\helpers\Helper::getContentConfig()); ?>
     
-    <?= $form->renderField('label', \app\helpers\Helper::getLabelConfig(), $model2); ?>
-    <?= $form->renderField('content', \app\helpers\Helper::getContentConfig(), $model2); ?>
+    <?= $form->renderField($model2, 'label', \app\helpers\Helper::getLabelConfig()); ?>
+    <?= $form->renderField($model2, 'content', \app\helpers\Helper::getContentConfig()); ?>
     
     <div class="form-group">
         <?= Html::submitButton(Yii::t('app', 'Save'), ['class' => 'btn btn-success']) ?>

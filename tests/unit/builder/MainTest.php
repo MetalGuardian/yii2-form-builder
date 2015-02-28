@@ -138,6 +138,103 @@ EOF
             , $this->renderField($settings));
     }
 
+    public function testRenderFieldListBoxType()
+    {
+        $settings = [
+            'type' => ActiveFormBuilder::INPUT_LIST_BOX,
+        ];
+        $this->assertEqualsWithoutLE(<<<EOF
+<div class="form-group field-dynamicmodel-name">
+<label class="control-label" for="dynamicmodel-name">Name</label>
+<input type="hidden" name="DynamicModel[name]" value=""><select id="dynamicmodel-name" class="form-control" name="DynamicModel[name]" size="4">
+
+</select>
+
+<div class="help-block"></div>
+</div>
+EOF
+            , $this->renderField($settings));
+
+        $settings = [
+            'type' => ActiveFormBuilder::INPUT_LIST_BOX,
+            'items' => [1 => 'One', 2 => 'Two'],
+        ];
+        $this->assertEqualsWithoutLE(<<<EOF
+<div class="form-group field-dynamicmodel-name">
+<label class="control-label" for="dynamicmodel-name">Name</label>
+<input type="hidden" name="DynamicModel[name]" value=""><select id="dynamicmodel-name" class="form-control" name="DynamicModel[name]" size="4">
+<option value="1">One</option>
+<option value="2">Two</option>
+</select>
+
+<div class="help-block"></div>
+</div>
+EOF
+            , $this->renderField($settings));
+    }
+
+    public function testRenderFieldCheckBoxListType()
+    {
+        $settings = [
+            'type' => ActiveFormBuilder::INPUT_CHECKBOX_LIST,
+        ];
+        $this->assertEqualsWithoutLE(<<<EOF
+<div class="form-group field-dynamicmodel-name">
+<label class="control-label" for="dynamicmodel-name">Name</label>
+<input type="hidden" name="DynamicModel[name]" value=""><div id="dynamicmodel-name"></div>
+
+<div class="help-block"></div>
+</div>
+EOF
+            , $this->renderField($settings));
+
+        $settings = [
+            'type' => ActiveFormBuilder::INPUT_CHECKBOX_LIST,
+            'items' => [1 => 'One', 2 => 'Two'],
+        ];
+        $this->assertEqualsWithoutLE(<<<EOF
+<div class="form-group field-dynamicmodel-name">
+<label class="control-label" for="dynamicmodel-name">Name</label>
+<input type="hidden" name="DynamicModel[name]" value=""><div id="dynamicmodel-name"><label><input type="checkbox" name="DynamicModel[name][]" value="1"> One</label>
+<label><input type="checkbox" name="DynamicModel[name][]" value="2"> Two</label></div>
+
+<div class="help-block"></div>
+</div>
+EOF
+            , $this->renderField($settings));
+    }
+
+    public function testRenderFieldRadioListType()
+    {
+        $settings = [
+            'type' => ActiveFormBuilder::INPUT_RADIO_LIST,
+        ];
+        $this->assertEqualsWithoutLE(<<<EOF
+<div class="form-group field-dynamicmodel-name">
+<label class="control-label" for="dynamicmodel-name">Name</label>
+<input type="hidden" name="DynamicModel[name]" value=""><div id="dynamicmodel-name"></div>
+
+<div class="help-block"></div>
+</div>
+EOF
+            , $this->renderField($settings));
+
+        $settings = [
+            'type' => ActiveFormBuilder::INPUT_RADIO_LIST,
+            'items' => [1 => 'One', 2 => 'Two'],
+        ];
+        $this->assertEqualsWithoutLE(<<<EOF
+<div class="form-group field-dynamicmodel-name">
+<label class="control-label" for="dynamicmodel-name">Name</label>
+<input type="hidden" name="DynamicModel[name]" value=""><div id="dynamicmodel-name"><label><input type="radio" name="DynamicModel[name]" value="1"> One</label>
+<label><input type="radio" name="DynamicModel[name]" value="2"> Two</label></div>
+
+<div class="help-block"></div>
+</div>
+EOF
+            , $this->renderField($settings));
+    }
+
     public function testRenderFieldCheckboxType()
     {
         $settings = [
@@ -147,6 +244,22 @@ EOF
 <div class="form-group field-dynamicmodel-name">
 
 <input type="hidden" name="DynamicModel[name]" value="0"><label><input type="checkbox" id="dynamicmodel-name" name="DynamicModel[name]" value="1"> Name</label>
+
+<div class="help-block"></div>
+</div>
+EOF
+            , $this->renderField($settings));
+    }
+
+    public function testRenderFieldRadioType()
+    {
+        $settings = [
+            'type' => ActiveFormBuilder::INPUT_RADIO,
+        ];
+        $this->assertEqualsWithoutLE(<<<EOF
+<div class="form-group field-dynamicmodel-name">
+
+<input type="hidden" name="DynamicModel[name]" value="0"><label><input type="radio" id="dynamicmodel-name" name="DynamicModel[name]" value="1"> Name</label>
 
 <div class="help-block"></div>
 </div>
@@ -190,7 +303,7 @@ EOF
 
     public function testRenderFieldWidgetTypeException()
     {
-        $this->setExpectedException('yii\base\InvalidConfigException', "A valid 'widgetClass' for 'name' must be setup and extend from '\yii\widgets\InputWidget'.");
+        $this->setExpectedException('yii\base\InvalidConfigException', "A valid 'widgetClass' must be setup and extend from '\yii\widgets\InputWidget'.");
         $settings = [
             'type' => ActiveFormBuilder::INPUT_WIDGET,
         ];
@@ -261,7 +374,7 @@ EOF
     public function testRenderFieldUnexpectedTypeException()
     {
         $type = 'OtherType';
-        $this->setExpectedException('yii\base\InvalidConfigException', "Invalid input type '{$type}' configured for the attribute 'name'.");
+        $this->setExpectedException('yii\base\InvalidConfigException', "Invalid input type '{$type}' configured for the attribute.");
         $settings = [
             'type' => $type,
         ];
@@ -275,7 +388,7 @@ EOF
         $form = new ActiveFormBuilder(['action' => '/something']);
         ob_end_clean();
 
-        return $form->renderField('name', $settings, $model);
+        return $form->renderField($model, 'name', $settings);
     }
 
     public function testRenderForm()
