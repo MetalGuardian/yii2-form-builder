@@ -10,6 +10,7 @@ Small and easy form builder. You can store form configuration in form model.
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/MetalGuardian/yii2-form-builder/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/MetalGuardian/yii2-form-builder/?branch=master)
 [![Code Coverage](https://scrutinizer-ci.com/g/MetalGuardian/yii2-form-builder/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/MetalGuardian/yii2-form-builder/?branch=master)
 [![Build Status](https://travis-ci.org/MetalGuardian/yii2-form-builder.svg?branch=master)](https://travis-ci.org/MetalGuardian/yii2-form-builder)
+[![Code Climate](https://codeclimate.com/github/MetalGuardian/yii2-form-builder/badges/gpa.svg)](https://codeclimate.com/github/MetalGuardian/yii2-form-builder)
 
 Installation
 ------------
