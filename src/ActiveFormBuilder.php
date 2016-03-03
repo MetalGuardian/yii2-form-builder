@@ -10,6 +10,7 @@ use yii\base\Model;
 use yii\helpers\ArrayHelper;
 use yii\widgets\ActiveField;
 use yii\widgets\ActiveForm;
+use yii\widgets\InputWidget;
 
 /**
  * Class ActiveFormBuilder
@@ -33,27 +34,6 @@ class ActiveFormBuilder extends ActiveForm
     const INPUT_RAW = 'raw';
 
     /**
-     * Valid input types
-     * @var array
-     */
-    protected static $validInputTypes = [
-        self::INPUT_HIDDEN,
-        self::INPUT_TEXT,
-        self::INPUT_TEXTAREA,
-        self::INPUT_PASSWORD,
-        self::INPUT_DROPDOWN_LIST,
-        self::INPUT_LIST_BOX,
-        self::INPUT_CHECKBOX,
-        self::INPUT_RADIO,
-        self::INPUT_CHECKBOX_LIST,
-        self::INPUT_RADIO_LIST,
-        self::INPUT_FILE,
-        self::INPUT_HTML5,
-        self::INPUT_WIDGET,
-        self::INPUT_RAW
-    ];
-
-    /**
      * @param Model $model
      * @param array $config
      *
@@ -71,32 +51,26 @@ class ActiveFormBuilder extends ActiveForm
 
 
     /**
-     * @param $attribute
+     * @param string $attribute
      * @param array $settings
      * @param Model $model
      *
      * @return ActiveField
      * @throws InvalidConfigException
      */
-    public function renderField($model, $attribute, array $settings = [])
+    public function renderField(Model $model, $attribute, array $settings = [])
     {
-        $type = $this->getType($settings);
-
         $fieldOptions = ArrayHelper::getValue($settings, 'fieldOptions', []);
-        $label = ArrayHelper::getValue($settings, 'label', null);
-        $labelOptions = ArrayHelper::getValue($settings, 'labelOptions', []);
-        $hint = ArrayHelper::getValue($settings, 'hint', null);
-        $hintOptions = ArrayHelper::getValue($settings, 'hintOptions', []);
-
         $field = $this->field($model, $attribute, $fieldOptions);
 
-        if ($label !== null) {
-            $field->label($label, $labelOptions);
+        if (($label = ArrayHelper::getValue($settings, 'label')) !== null) {
+            $field->label($label, ArrayHelper::getValue($settings, 'labelOptions', []));
         }
-        if ($hint !== null) {
-            $field->hint($hint, $hintOptions);
+        if (($hint = ArrayHelper::getValue($settings, 'hint')) !== null) {
+            $field->hint($hint, ArrayHelper::getValue($settings, 'hintOptions', []));
         }
 
+        $type = ArrayHelper::getValue($settings, 'type', static::INPUT_TEXT);
         $this->prepareField($field, $type, $settings);
 
         return $field;
@@ -113,56 +87,43 @@ class ActiveFormBuilder extends ActiveForm
         $options = ArrayHelper::getValue($settings, 'options', []);
         switch ($type) {
             case static::INPUT_HIDDEN:
-                $field->hiddenInput($options);
-                break;
             case static::INPUT_TEXT:
-                $field->textInput($options);
-                break;
             case static::INPUT_TEXTAREA:
-                $field->textarea($options);
-                break;
             case static::INPUT_PASSWORD:
-                $field->passwordInput($options);
-                break;
             case static::INPUT_FILE:
-                $field->fileInput($options);
+                $field->$type($options);
                 break;
+
             case static::INPUT_DROPDOWN_LIST:
-                $items = ArrayHelper::getValue($settings, 'items', []);
-                $field->dropDownList($items, $options);
-                break;
             case static::INPUT_LIST_BOX:
-                $items = ArrayHelper::getValue($settings, 'items', []);
-                $field->listBox($items, $options);
-                break;
             case static::INPUT_CHECKBOX_LIST:
-                $items = ArrayHelper::getValue($settings, 'items', []);
-                $field->checkboxList($items, $options);
-                break;
             case static::INPUT_RADIO_LIST:
                 $items = ArrayHelper::getValue($settings, 'items', []);
-                $field->radioList($items, $options);
+                $field->$type($items, $options);
                 break;
+
             case static::INPUT_CHECKBOX:
-                $enclosedByLabel = ArrayHelper::getValue($settings, 'enclosedByLabel', true);
-                $field->checkbox($options, $enclosedByLabel);
-                break;
             case static::INPUT_RADIO:
                 $enclosedByLabel = ArrayHelper::getValue($settings, 'enclosedByLabel', true);
-                $field->radio($options, $enclosedByLabel);
+                $field->$type($options, $enclosedByLabel);
                 break;
+
             case static::INPUT_HTML5:
                 $html5type = ArrayHelper::getValue($settings, 'html5type', 'text');
-                $field->input($html5type, $options);
+                $field->$type($html5type, $options);
                 break;
+
             case static::INPUT_WIDGET:
                 $widgetClass = $this->getWidgetClass($settings);
-                $field->widget($widgetClass, $options);
+                $field->$type($widgetClass, $options);
                 break;
+
             case static::INPUT_RAW:
-                $value = $this->getValue($settings);
-                $field->parts['{input}'] = $value;
+                $field->parts['{input}'] = $this->getValue($settings);
                 break;
+
+            default:
+                throw new InvalidConfigException("Invalid input type '{$type}' configured for the attribute.");
         }
     }
 
@@ -173,8 +134,8 @@ class ActiveFormBuilder extends ActiveForm
      */
     protected function getWidgetClass(array $settings)
     {
-        $widgetClass = ArrayHelper::getValue($settings, 'widgetClass', []);
-        if (empty($widgetClass) && !$widgetClass instanceof \yii\widgets\InputWidget) {
+        $widgetClass = ArrayHelper::getValue($settings, 'widgetClass');
+        if (empty($widgetClass) && !$widgetClass instanceof InputWidget) {
             throw new InvalidConfigException(
                 "A valid 'widgetClass' must be setup and extend from '\\yii\\widgets\\InputWidget'."
             );
@@ -184,34 +145,15 @@ class ActiveFormBuilder extends ActiveForm
 
     /**
      * @param array $settings
-     * @return mixed
-     * @throws InvalidConfigException
-     */
-    protected function getType(array $settings)
-    {
-        $type = ArrayHelper::getValue($settings, 'type', static::INPUT_TEXT);
-
-        if (!in_array($type, static::$validInputTypes, true)) {
-            throw new InvalidConfigException(
-                "Invalid input type '{$type}' configured for the attribute."
-            );
-        }
-        return $type;
-    }
-
-    /**
-     * @param array $settings
      * @return mixed|string
      */
     protected function getValue(array $settings)
     {
         $value = ArrayHelper::getValue($settings, 'value', '');
-        if ($value instanceof \Closure) {
-            $value = call_user_func($value);
-            return $value;
+        if (is_callable($value)) {
+            return call_user_func($value);
         } elseif (!is_string($value)) {
-            $value = '';
-            return $value;
+            return '';
         }
         return $value;
     }
